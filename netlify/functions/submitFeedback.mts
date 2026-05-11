@@ -8,7 +8,32 @@ const adminClient = createClient(
 );
 
 const GITHUB_API_URL = 'https://api.github.com/repos/wkly-me/Wkly-git/issues';
+const GITHUB_LABELS_URL = 'https://api.github.com/repos/wkly-me/Wkly-git/labels';
 const NPS_NEGATIVE_THRESHOLD = 5;
+
+async function ensureFeedbackLabel(token: string): Promise<void> {
+  // Check if label exists
+  const check = await fetch(`${GITHUB_LABELS_URL}/Feedback`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
+  if (check.status === 200) return; // already exists
+
+  // Create it
+  await fetch(GITHUB_LABELS_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+    body: JSON.stringify({ name: 'Feedback', color: '5319e7', description: 'User-submitted feedback' }),
+  });
+}
 
 async function createGitHubIssue(
   npsScore: number,
@@ -38,6 +63,9 @@ async function createGitHubIssue(
     '---',
     '_Auto-generated from in-app feedback submission._',
   ];
+
+  // Ensure the label exists before creating the issue
+  await ensureFeedbackLabel(token);
 
   const res = await fetch(GITHUB_API_URL, {
     method: 'POST',
