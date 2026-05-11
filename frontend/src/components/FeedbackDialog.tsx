@@ -112,10 +112,10 @@ export default function FeedbackDialog({ isOpen, onClose }: FeedbackDialogProps)
           <DialogTitle sx={{ pb: 1 }}>Share Your Feedback</DialogTitle>
           <DialogContent>
             <Typography variant="body1" sx={{ mb: 3 }}>
-              How likely are you to recommend Wkly to a friend or colleague?
+              How likely are you to recommend Wkly to a friend, family member, or colleague?
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-              0 = Not at all likely &nbsp;·&nbsp; 10 = Extremely likely
+              0 = Not at all likely &nbsp;–&nbsp; 10 = Extremely likely
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
               {SCORES.map((score) => (
@@ -155,22 +155,14 @@ export default function FeedbackDialog({ isOpen, onClose }: FeedbackDialogProps)
         <>
           <DialogTitle sx={{ pb: 1 }}>Share Your Feedback</DialogTitle>
           <DialogContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Box className="flex w-full h-auto mt-2 flex-row text-primary-text items-center" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 Your score:
               </Typography>
               <Box
+                className={`flex w-6 h-6 mb-4 p-0 rounded-full text-inverse-text text-xs items-center justify-center`}
                 sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  backgroundColor: npsInfo.color,
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: '1rem',
+                  backgroundColor: npsInfo.color
                 }}
               >
                 {selectedScore}
@@ -183,7 +175,7 @@ export default function FeedbackDialog({ isOpen, onClose }: FeedbackDialogProps)
                 variant="text"
                 color="inherit"
                 onClick={() => setStage('score')}
-                sx={{ ml: 'auto', fontSize: '0.75rem' }}
+                sx={{ ml: 'auto', fontSize: '0.75rem', marginBottom: '1rem' }}
               >
                 Change
               </Button>
@@ -203,6 +195,7 @@ export default function FeedbackDialog({ isOpen, onClose }: FeedbackDialogProps)
             />
 
             <FormControlLabel
+              sx={{ mt: 1 }}
               control={
                 <Checkbox
                   checked={includeEmail}
@@ -211,9 +204,8 @@ export default function FeedbackDialog({ isOpen, onClose }: FeedbackDialogProps)
                 />
               }
               label={
-                <Typography variant="body2" color="text.secondary">
-                  Include my email so you can follow up with me
-                </Typography>
+                
+                  "Include my email so you can follow up with me"
               }
             />
           </DialogContent>
