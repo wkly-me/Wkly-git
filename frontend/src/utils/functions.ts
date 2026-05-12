@@ -94,6 +94,13 @@ export const fetchAllGoals = async (includeArchived = false): Promise<Goal[]> =>
     throw new Error('Failed to fetch all goals');
   }
 
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    const body = await response.text();
+    console.error('getAllGoals returned non-JSON response:', body.slice(0, 200));
+    throw new Error('Unexpected response from server');
+  }
+
   const goals = await response.json();
   // Sort by created date ascending
   goals.sort((a: { created_at: string | number | Date }, b: { created_at: string | number | Date }) =>

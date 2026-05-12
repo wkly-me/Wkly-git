@@ -13,7 +13,8 @@ import List from '@mui/material/List';
 import ProfileManagement from './ProfileManagement';
 // import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import { Home, MenuIcon, Moon, Sun, Target, Text, X, ThumbsUp } from 'lucide-react';
+import { Home, MenuIcon, MessageSquare, Moon, Sun, Target, Text, X, ThumbsUp } from 'lucide-react';
+import FeedbackDialog from '@components/FeedbackDialog';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -78,6 +79,7 @@ export default function PersistentDrawerRight({...props }: HeaderProps) {
   };
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   // const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { session, profile } = useAuth();
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
@@ -167,11 +169,17 @@ const toggleThemeInternal = (): void => {
                         >
                             <label className="px-4 pb-4" htmlFor="profile-menu">{session?.user?.email}</label>
                             <MenuItem onClick={() => setIsProfileOpen(true)}>Preferences</MenuItem>
+                            <MenuItem onClick={() => { setIsFeedbackOpen(true); }}>
+                              <MessageSquare className="w-4 h-4 mr-2" />
+                              Share Feedback
+                            </MenuItem>
                             {profile?.is_admin === true && <MenuItem onClick={() => window.location.href = '/admin/access'}>Admin Access Requests</MenuItem>}
                             <MenuItem onClick={handleLogout}>Sign Out</MenuItem>
                         </Menu>
                     
                    
+                        <FeedbackDialog isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+
                         <Modal
                           isOpen={isProfileOpen}
                           id='Profile'
