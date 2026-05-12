@@ -125,6 +125,7 @@ export const handler = withCors(async (event) => {
 
     // Create GitHub issue for negative scores
     let githubIssueUrl: string | null = null;
+    console.log(`submitFeedback: nps_score=${nps_score}, threshold=${NPS_NEGATIVE_THRESHOLD}, will_create_issue=${nps_score <= NPS_NEGATIVE_THRESHOLD}`);
     if (nps_score <= NPS_NEGATIVE_THRESHOLD) {
       githubIssueUrl = await createGitHubIssue(nps_score, message ?? null, !!include_email, userEmail);
     }
