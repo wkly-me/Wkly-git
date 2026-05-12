@@ -22,13 +22,24 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
-import { Check, X, RefreshCw, UserMinus, CircleQuestionMark, UserCheck, ThumbsUpIcon, Trash2, Mail } from 'lucide-react';
+import { Check, X, RefreshCw, UserMinus, CircleQuestionMark, UserCheck, ThumbsUpIcon, Trash2, Mail, MessageSquare } from 'lucide-react';
 import supabase from '@lib/supabase';
 import { notifySuccess, notifyError } from '@components/ToastyNotification';
 import { fetchPendingAffirmations, moderateAffirmation } from '@utils/affirmationApi';
 import type { Affirmation } from '../types/affirmations';
 import { styled } from '@mui/material/styles';
 
+
+interface FeedbackEntry {
+  id: string;
+  user_id: string | null;
+  nps_score: number;
+  message: string | null;
+  include_email: boolean;
+  user_email: string | null;
+  github_issue_url: string | null;
+  created_at: string;
+}
 
 interface AccessRequest {
   id: string;
@@ -106,6 +117,7 @@ const AdminAccessRequests: React.FC = () => {
   const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [approvedUsers, setApprovedUsers] = useState<ApprovedUser[]>([]);
   const [affirmations, setAffirmations] = useState<Affirmation[]>([]);
+  const [feedbackEntries, setFeedbackEntries] = useState<FeedbackEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [affirmationFilter, setAffirmationFilter] = useState<string>('pending');
@@ -152,6 +164,8 @@ const AdminAccessRequests: React.FC = () => {
       fetchApprovedUsers();
     } else if (activeTab === 2) {
       fetchAffirmationSubmissions();
+    } else if (activeTab === 3) {
+      fetchFeedback();
     }
   }, [statusFilter, affirmationFilter, activeTab]);
 
@@ -163,6 +177,31 @@ const AdminAccessRequests: React.FC = () => {
     } catch (err: any) {
       console.error('Error fetching affirmation submissions:', err);
       notifyError(err?.message || 'Failed to load affirmation submissions');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFeedback = async () => {
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        notifyError('Not authenticated');
+        return;
+      }
+      const response = await fetch('/api/getFeedback', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!response.ok) {
+        if (response.status === 403) { notifyError('Admin access required'); return; }
+        throw new Error('Failed to fetch feedback');
+      }
+      const data = await response.json();
+      setFeedbackEntries(data);
+    } catch (err: any) {
+      console.error('Error fetching feedback:', err);
+      notifyError(err?.message || 'Failed to load feedback');
     } finally {
       setLoading(false);
     }
@@ -409,7 +448,8 @@ const AdminAccessRequests: React.FC = () => {
             <IconButton onClick={() => {
               if (activeTab === 0) fetchRequests();
               else if (activeTab === 1) fetchApprovedUsers();
-              else fetchAffirmationSubmissions();
+              else if (activeTab === 2) fetchAffirmationSubmissions();
+              else fetchFeedback();
             }} disabled={loading}>
               <RefreshCw className={loading ? 'animate-spin' : ''} />
             </IconButton>
@@ -429,6 +469,7 @@ const AdminAccessRequests: React.FC = () => {
         <StyledTab className='focus:ring-0 focus:ring-offset-0' label="Access Requests" icon={<CircleQuestionMark className="w-4 h-4" />} iconPosition="start" />
         <StyledTab className='focus:ring-0 focus:ring-offset-0' label="Approved Users" icon={<UserCheck className="w-4 h-4" />} iconPosition="start" />
         <StyledTab className='focus:ring-0 focus:ring-offset-0' label="Affirmation Submissions" icon={<ThumbsUpIcon className="w-4 h-4" />} iconPosition="start" />
+        <StyledTab className='focus:ring-0 focus:ring-offset-0' label="Feedback" icon={<MessageSquare className="w-4 h-4" />} iconPosition="start" />
       </StyledTabs>
 
       {activeTab === 0 && (
@@ -745,6 +786,79 @@ const AdminAccessRequests: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </>
+      )}
+      {activeTab === 3 && (
+        <>
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <CircularProgress />
+            </div>
+          ) : feedbackEntries.length === 0 ? (
+            <Paper className="p-8 text-center">
+              <Typography variant="body1" color="text.secondary">
+                No feedback submissions yet
+              </Typography>
+            </Paper>
+          ) : (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>NPS Score</TableCell>
+                    <TableCell>Message</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>GitHub Issue</TableCell>
+                    <TableCell>Submitted</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {feedbackEntries.map((entry) => {
+                    const scoreColor = entry.nps_score <= 5 ? 'error' : entry.nps_score <= 8 ? 'warning' : 'success';
+                    return (
+                      <TableRow key={entry.id}>
+                        <TableCell>
+                          <Chip
+                            label={entry.nps_score}
+                            color={scoreColor as 'error' | 'warning' | 'success'}
+                            size="small"
+                            sx={{ fontWeight: 700, minWidth: 40 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="max-w-sm" title={entry.message || ''}>
+                            {entry.message || <span className="text-gray-400 italic">No comment</span>}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {entry.include_email && entry.user_email ? (
+                            <span>{entry.user_email}</span>
+                          ) : (
+                            <span className="text-gray-400 italic">Anonymous</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {entry.github_issue_url ? (
+                            <a
+                              href={entry.github_issue_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-brand-60 underline text-sm"
+                            >
+                              View Issue
+                            </a>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{formatDate(entry.created_at)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

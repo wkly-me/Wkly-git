@@ -43,9 +43,11 @@ const AffirmationSettings = lazy(() => import('@components/affirmations/Affirmat
 const OnboardingAssistant = lazy(() => import('@components/OnboardingAssistant'));
 const WeeklyResetFlow = lazy(() => import('@components/weekly/WeeklyResetFlow'));
 const WeeklyReflectionFlow = lazy(() => import('@components/weekly/WeeklyReflectionFlow'));
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip, Snackbar, IconButton } from '@mui/material';
 import { shouldShowWeeklyReset, shouldShowWeeklyReflection } from '@hooks/useWeeklyFlows';
-import { Bell, Calendar, FileText } from 'lucide-react';
+import { Bell, Calendar, FileText, MessageSquare, X as XIcon } from 'lucide-react';
+import { useFeedbackNudge } from '@hooks/useFeedbackNudge';
+import FeedbackDialog from '@components/FeedbackDialog';
 import { loadSession, saveSession } from '@components/focus/useFocusSession';
 
 
@@ -75,6 +77,8 @@ const App: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWeeklyReset, setShowWeeklyReset] = useState(false);
   const [showWeeklyReflection, setShowWeeklyReflection] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const { shouldNudge, dismissNudge } = useFeedbackNudge();
 
   // Refresh the Supabase session when the Android/iOS app comes back from background.
   // Without this, the 1-hour access token can expire while backgrounded and all
@@ -464,6 +468,38 @@ const App: React.FC = () => {
 
     </AppMuiThemeProvider>
         <ToastNotification theme={theme} />
+        <Snackbar
+          open={shouldNudge && !isFeedbackOpen}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          message={
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <MessageSquare size={16} />
+              How are we doing? Share your feedback
+            </span>
+          }
+          action={
+            <>
+              <Button
+                size="small"
+                color="primary"
+                variant="contained"
+                onClick={() => { dismissNudge(); setIsFeedbackOpen(true); }}
+                sx={{ mr: 1, textTransform: 'none' }}
+              >
+                Give Feedback
+              </Button>
+              <IconButton
+                size="small"
+                color="inherit"
+                onClick={dismissNudge}
+                aria-label="dismiss feedback nudge"
+              >
+                <XIcon size={16} />
+              </IconButton>
+            </>
+          }
+        />
+        <FeedbackDialog isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </SessionContextProvider>
   );
 }

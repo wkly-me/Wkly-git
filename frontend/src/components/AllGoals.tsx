@@ -4178,7 +4178,7 @@ const GoalsComponent = () => {
                     disabled={!canCreateGoal}
                     aria-label={`Add a new goal`}
                     >
-                    <span className="block flex text-nowrap">Add a Goal</span>
+                    <span className="flex text-nowrap">Add a Goal</span>
                     <Target className="w-5 h-5" />
                 </Button>
                 {!canCreateGoal && (

@@ -17,6 +17,7 @@ import PersistentDrawerRight from './MenuDrawer';
 import ProfileManagement from './ProfileManagement';
 import Logo from '@components/Logo';
 import { styled } from '@mui/material/styles';
+import FeedbackDialog from '@components/FeedbackDialog';
 
 
 
@@ -134,6 +135,7 @@ const Header = ({ isOpen = false, ...props }: HeaderProps) => {
     const headerRef = useRef<HTMLDivElement | null>(null);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
     const [scrolled, setScrolled] = useState(false);
     const { session, profile } = useAuth();
@@ -492,14 +494,16 @@ const Header = ({ isOpen = false, ...props }: HeaderProps) => {
                                         onClick={handleMenuClose}
                                         className='p-4'
                                     >
-                                        <label className="px-4 pb-4" htmlFor="profile-menu">{session?.user?.email}</label>
+                                        <label className="px-4 pb-4 opacity-50" htmlFor="profile-menu">{session?.user?.email}</label>
                                         <MenuItem onClick={() => setIsProfileOpen(true)}>Preferences</MenuItem>
-                                        {profile?.is_admin === true && <MenuItem onClick={() => window.location.href = '/admin/access'}>Admin Access Requests</MenuItem>}
+                                        <MenuItem onClick={() => { setIsFeedbackOpen(true); }} divider>Share Feedback</MenuItem>
                                         <MenuItem onClick={handleLogout}>Sign Out</MenuItem>
+                                        {profile?.is_admin === true && <MenuItem onClick={() => window.location.href = '/admin/access'}>Admin Access Requests</MenuItem>}
                                     </Menu>
                                 </>
                             )}
                         </div>
+                        <FeedbackDialog isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
                         <Modal
                             isOpen={isProfileOpen}
                             id='Profile'
