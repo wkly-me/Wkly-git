@@ -167,14 +167,11 @@ const toggleThemeInternal = (): void => {
                             onClick={handleMenuClose}
                             className='p-4'
                         >
-                            <label className="px-4 pb-4" htmlFor="profile-menu">{session?.user?.email}</label>
+                            <label className="px-4 pb-4 opacity-50" htmlFor="profile-menu">{session?.user?.email}</label>
                             <MenuItem onClick={() => setIsProfileOpen(true)}>Preferences</MenuItem>
-                            <MenuItem onClick={() => { setIsFeedbackOpen(true); }}>
-                              <MessageSquare className="w-4 h-4 mr-2" />
-                              Share Feedback
-                            </MenuItem>
-                            {profile?.is_admin === true && <MenuItem onClick={() => window.location.href = '/admin/access'}>Admin Access Requests</MenuItem>}
+                            <MenuItem onClick={() => { setIsFeedbackOpen(true); }} divider>Share Feedback</MenuItem>
                             <MenuItem onClick={handleLogout}>Sign Out</MenuItem>
+                            {profile?.is_admin === true && <MenuItem onClick={() => window.location.href = '/admin/access'}>Admin Access Requests</MenuItem>}
                         </Menu>
                     
                    
